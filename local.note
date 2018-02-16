@@ -1,0 +1,14 @@
+Procedure to retrieve and process/view GFS Tropopause Winds:
+
+cd $LAB/earth/public/data/weather/current
+vi curl.csh and modify data as needed
+e.g.
+ curl "http://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_1p00.pl?file=gfs.t18z.pgrb2.1p00.anl&lev_PV%3D2e-06_%5C%28Km%5C%5E2%2Fkg%2Fs%5C%29_surface=on&var_UGRD=on&var_VGRD=on&leftlon=0&rightlon=360&toplat=90&bottomlat=-90&dir=%2Fgfs.2018012218" -o gfs.t00z.pgrb2.1p00.f000
+wgrib2 gfs.t00z.pgrb2.1p00.f000 produces:
+  1:0:d=2018012218:UGRD:PV=2e-06 (Km^2/kg/s) surface:anl:
+  2:28348:d=2018012218:VGRD:PV=2e-06 (Km^2/kg/s) surface:anl:
+
+Next task is to decompose the winds into irrotational and nondivergent parts.
+Notebook for this is in 0notebooks/Cartopy-Windspharm-GFS.ipynb
+
+This notebook actually will retrieve the most recent 1 deg GFS, do the decomposition, and store the JSON files. Right now they are stored as uirr/virr.json and unond/vnond.json.

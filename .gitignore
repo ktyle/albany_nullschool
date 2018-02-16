@@ -1,0 +1,10 @@
+.DS_Store
+.idea
+node_modules
+target
+scratch
+private
+*.iml
+new
+temp
+public/data
