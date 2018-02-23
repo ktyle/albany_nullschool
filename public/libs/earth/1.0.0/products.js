@@ -68,7 +68,7 @@ var products = function() {
      * to jump is determined by the step. Steps of ±1 move in 3-hour jumps, and steps of ±10 move in 24-hour jumps.
      */
     function gfsStep(date, step) {
-        var offset = (step > 1 ? 8 : step < -1 ? -8 : step) * 3, adjusted = new Date(date);
+        var offset = step * 3, adjusted = new Date(date);
         adjusted.setHours(adjusted.getHours() + offset);
         return adjusted;
     }

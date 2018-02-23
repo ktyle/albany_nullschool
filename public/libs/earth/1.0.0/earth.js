@@ -9,6 +9,7 @@
 (function() {
     "use strict";
 
+    var REL_TIME = 0;
     var SECOND = 1000;
     var MINUTE = 60 * SECOND;
     var HOUR = 60 * MINUTE;
@@ -271,8 +272,21 @@
             log.debug("Download in progress--ignoring nav request.");
             return;
         }
-        var next = gridAgent.value().primaryGrid.navigate(step);
+        if(configuration.attributes.date == "current")
+            console.log("stepping from current");
+
+        REL_TIME += step;
+        if(REL_TIME == 0)
+        {
+            configuration.save({date: "current", hour: ""});
+            return;
+        }
+        var next = gridAgent.value().primaryGrid.navigate(REL_TIME);
+        if(gridAgent)
+        console.log("navigated");
+        console.log(next);
         if (next) {
+            console.log("saved");
             configuration.save(µ.dateToConfig(next));
         }
     }
@@ -1072,11 +1086,11 @@
         });
 
         // Add event handlers for the time navigation buttons.
-        d3.select("#nav-backward-more").on("click", navigate.bind(null, -10));
-        d3.select("#nav-forward-more" ).on("click", navigate.bind(null, +10));
+        d3.select("#nav-backward-more").on("click", navigate.bind(null, -8));
+        d3.select("#nav-forward-more" ).on("click", navigate.bind(null, +8));
         d3.select("#nav-backward"     ).on("click", navigate.bind(null, -1));
         d3.select("#nav-forward"      ).on("click", navigate.bind(null, +1));
-        d3.select("#nav-now").on("click", function() { configuration.save({date: "current", hour: ""}); });
+        d3.select("#nav-now").on("click", function() { configuration.save({date: "current", hour: ""}); REL_TIME = 0; });
 
         d3.select("#option-show-grid").on("click", function() {
             configuration.save({showGridPoints: !configuration.get("showGridPoints")});
