@@ -281,7 +281,7 @@
             configuration.save({date: "current", hour: ""});
             return;
         }
-        var next = gridAgent.value().primaryGrid.navigate(REL_TIME);
+        var next = gridAgent.value().primaryGrid.navigate(step);
         if(gridAgent)
         console.log("navigated");
         console.log(next);
@@ -715,6 +715,7 @@
         // When the active layer is considered "current", use its time as now, otherwise use current time as
         // now (but rounded down to the nearest three-hour block).
         var THREE_HOURS = 3 * HOUR;
+
         var now = grids ? grids.primaryGrid.date.getTime() : Math.floor(Date.now() / THREE_HOURS) * THREE_HOURS;
         var parts = configuration.get("date").split("/");  // yyyy/mm/dd or "current"
         var hhmm = configuration.get("hour");
@@ -726,12 +727,13 @@
     /**
      * Display the grid's validity date in the menu. Allow toggling between local and UTC time.
      */
+
     function showDate(grids) {
-        var date = new Date(validityDate(grids)), isLocal = d3.select("#data-date").classed("local");
-        var formatted = isLocal ? µ.toLocalISO(date) : µ.toUTCISO(date);
-        d3.select("#data-date").text(formatted + " " + (isLocal ? "Local" : "UTC"));
-        d3.select("#toggle-zone").text("⇄ " + (isLocal ? "UTC" : "Local"));
+        var date = new Date(validityDate(grids))
+        var formatted = µ.toUTCISO(date);
+        d3.select("#data-date").text(formatted + " " + "UTC");
     }
+   
 
     /**
      * Display the grids' types in the menu.
