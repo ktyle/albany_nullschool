@@ -22,8 +22,8 @@ var products = function() {
             description: "",
             paths: [],
             date: null,
-            navigate: function(step) {
-                return gfsStep(this.date, step);
+            navigate: function(reldate, step) {
+                return gfsStep(reldate, step);
             },
             load: function(cancel) {
                 var me = this;
@@ -45,7 +45,7 @@ var products = function() {
         var dir = attr.date, stamp = dir === "current" ? "current" : attr.hour;
         var file = [stamp, type, surface, level, "gfs", "1.0"].filter(µ.isValue).join("-") + ".json";
 	console.log ("attr.date = " + attr.date + " attr.hour = " + attr.hour);
-        console.log ("file = " + file);
+     console.log ("file = " + file);
 	console.log ("surface = " + surface);
 	console.log ("attr.surface = " + attr.surface);
 	console.log ("level= " + level);
@@ -55,11 +55,14 @@ var products = function() {
 
     function gfsDate(attr) {
         if (attr.date === "current") {
+            console.log("constructing date from current")
             // Construct the date from the current time, rounding down to the nearest three-hour block.
             var now = new Date(Date.now()), hour = Math.floor(now.getUTCHours() / 3);
             return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour));
         }
         var parts = attr.date.split("/");
+        console.log("gfsDate parts");
+        console.log(parts);
         return new Date(Date.UTC(+parts[0], parts[1] - 1, +parts[2], +attr.hour.substr(0, 2)));
     }
 
@@ -68,7 +71,11 @@ var products = function() {
      * to jump is determined by the step. Steps of ±1 move in 3-hour jumps, and steps of ±10 move in 24-hour jumps.
      */
     function gfsStep(date, step) {
+        //console.log("date");
+        //console.log(date);
         var offset = step * 3, adjusted = new Date(date);
+        //console.log("adjusted date init");
+        //console.log(adjusted);
         adjusted.setUTCHours(adjusted.getUTCHours() + offset);
         return adjusted;
     }
@@ -759,7 +766,7 @@ console.log ("attr.surface = " + attr.surface);
         // console.log(date.getUTCHours());
         // console.log(parseInt(header.forecastTime));
         date.setUTCHours(date.getUTCHours() + parseInt(header.forecastTime));
-        // console.log(date);
+        console.log(date);
         // Scan mode 0 assumed. Longitude increases from λ0, and latitude decreases from φ0.
         // http://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_table3-4.shtml
         var grid = [], p = 0;
