@@ -9,6 +9,7 @@
 (function() {
     "use strict";
 
+    var REL_DATE;
     var REL_TIME = 0;
     var SECOND = 1000;
     var MINUTE = 60 * SECOND;
@@ -272,19 +273,17 @@
             log.debug("Download in progress--ignoring nav request.");
             return;
         }
-        if(configuration.attributes.date == "current")
-            console.log("stepping from current");
-
         REL_TIME += step;
         if(REL_TIME == 0)
         {
             configuration.save({date: "current", hour: ""});
             return;
         }
-        var next = gridAgent.value().primaryGrid.navigate(step);
+        var next = gridAgent.value().primaryGrid.navigate(REL_DATE, step);
         if(gridAgent)
-        console.log("navigated");
-        console.log(next);
+         //  console.log("navigated");
+         //   console.log(next);
+         //   REL_DATE = next;
         if (next) {
             console.log("saved");
             configuration.save(µ.dateToConfig(next));
@@ -366,7 +365,7 @@
                 click: drawLocationMark
             });
 
-        // Finally, inject the globe model into the input controller. Do it on the next event turn to ensure
+        // Finally, injdateToConfigect the globe model into the input controller. Do it on the next event turn to ensure
         // renderer is fully set up before events start flowing.
         when(true).then(function() {
             inputController.globe(globe);
@@ -476,7 +475,6 @@
 
     function interpolateField(globe, grids) {
         if (!globe || !grids) return null;
-
         var mask = createMask(globe);
         var primaryGrid = grids.primaryGrid;
         var overlayGrid = grids.overlayGrid;
@@ -731,12 +729,18 @@
     function showDate(grids) {
         var date = new Date(validityDate(grids))
         var formatted = µ.toUTCISO(date);
-        d3.select("#data-date").text(formatted + " " + "UTC");
+        REL_DATE = date;
+        console.log(REL_DATE);
+        console.log("showDate");
+        var local = µ.toLocalISO(date);
+        console.log(date.getHours());
+        console.log(local);
+        d3.select("#data-date").text(formatted + " " + "UTC" + " | " + local + " " + "Local");
     }
    
 
     /**
-     * Display the grids' types in the menu.
+     * Display the grids' types in the menu. ›
      */
     function showGridDetails(grids) {
         showDate(grids);
@@ -1092,7 +1096,11 @@
         d3.select("#nav-forward-more" ).on("click", navigate.bind(null, +8));
         d3.select("#nav-backward"     ).on("click", navigate.bind(null, -1));
         d3.select("#nav-forward"      ).on("click", navigate.bind(null, +1));
-        d3.select("#nav-now").on("click", function() { configuration.save({date: "current", hour: ""}); REL_TIME = 0; });
+        d3.select("#nav-now").on("click", function() { configuration.save({date: "current", hour: ""}); 
+            REL_TIME = 0; 
+            REL_DATE = configuration.attributes.date; 
+            console.log("reldate init");
+            console.log(REL_DATE); });
 
         d3.select("#option-show-grid").on("click", function() {
             configuration.save({showGridPoints: !configuration.get("showGridPoints")});
@@ -1133,6 +1141,7 @@
     function start() {
         // Everything is now set up, so load configuration from the hash fragment and kick off change events.
         configuration.fetch();
+        REL_TIME = 0; 
     }
 
     when(true).then(init).then(start).otherwise(report.error);
