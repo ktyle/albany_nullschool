@@ -686,22 +686,25 @@
             // Draw color bar for reference.
             var colorBar = d3.select("#scale"), scale = grid.scale, bounds = scale.bounds;
             var c = colorBar.node(), g = c.getContext("2d"), n = c.width - 1;
+            g.font = c.height+"px serif";
             for (var i = 0; i <= n; i++) {
                 var rgb = scale.gradient(µ.spread(i / n, bounds[0], bounds[1]), 1);
                 g.fillStyle = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
                 g.fillRect(i, 0, 1, c.height);
             }
+            g.fillStyle = "rgb(0,0,0)";
+            for (var i = 0; i <= n; i++) {
+                if(i%50 == 0) {
+                
 
-            // Show tooltip on hover.
-            colorBar.on("mousemove", function() {
-                var x = d3.mouse(this)[0];
-                var pct = µ.clamp((Math.round(x) - 2) / (n - 2), 0, 1);
+                var pct = µ.clamp((Math.round(i) - 2) / (n - 2), 0, 1);
                 var value = µ.spread(pct, bounds[0], bounds[1]);
                 var elementId = grid.type === "wind" ? "#location-wind-units" : "#location-value-units";
                 var units = createUnitToggle(elementId, grid).value();
-                colorBar.attr("title", µ.formatScalar(value, units) + " " + units.label);
-            });
+                g.fillText("|"+µ.formatScalar(value, units) + " " + units.label, i, c.height);
+            }
         }
+    }
     }
 
     /**
