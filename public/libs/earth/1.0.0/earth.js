@@ -273,14 +273,44 @@
             log.debug("Download in progress--ignoring nav request.");
             return;
         }
-        REL_TIME += step;
+        if(step % 8 == 0)
+        {
+            REL_TIME += step;
+        }
+        else if(REL_TIME < 80)
+        {
+            REL_TIME += step;
+        }
+        else if(REL_TIME == 80 && Math.sign(step) == -1)
+        {
+            REL_TIME += step;
+        }
+        else if(REL_TIME >= 80 && REL_TIME <= 107)
+        {
+            step *= 2;
+            REL_TIME += step;
+        }
+        else if (REL_TIME == 108 && Math.sign(step) == -1)
+        {
+            step *= 2;
+            REL_TIME += step;
+        }
+        else if (REL_TIME >= 108)
+        {
+            step *= 4;
+            REL_TIME += step;
+        }
         if(REL_TIME == 0)
         {
             configuration.save({date: "current", hour: ""});
             return;
         }
+
         var next = gridAgent.value().primaryGrid.navigate(REL_DATE, step);
-        if(gridAgent)
+        //if(gridAgent)
+        console.log("next val");
+        console.log(REL_TIME);
+        console.log(next);
          //  console.log("navigated");
          //   console.log(next);
          //   REL_DATE = next;
