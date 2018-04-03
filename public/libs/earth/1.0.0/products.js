@@ -754,17 +754,11 @@ console.log ("attr.surface = " + attr.surface);
         var λ0 = header.lo1, φ0 = header.la1;  // the grid's origin (e.g., 0.0E, 90.0N)
         var Δλ = header.dx, Δφ = header.dy;    // distance between grid points (e.g., 2.5 deg lon, 2.5 deg lat)
         var ni = header.nx, nj = header.ny;    // number of grid points W-E and N-S (e.g., 144 x 73)
-        // console.log(header.refTime);
         var refparts = header.refTime.split(" ");
         var dateparts = refparts[0].split("-"); 
         var timeparts = refparts[1].split(":");
-        // console.log(refparts);
         var date = new Date(Date.UTC(dateparts[0], dateparts[1]-1, dateparts[2], timeparts[0], 0, 0, 0));
-        // console.log(date);
-        // console.log(date.getUTCHours());
-        // console.log(parseInt(header.forecastTime));
         date.setUTCHours(date.getUTCHours() + parseInt(header.forecastTime));
-        //console.log(date);
         // Scan mode 0 assumed. Longitude increases from λ0, and latitude decreases from φ0.
         // http://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_table3-4.shtml
         var grid = [], p = 0;

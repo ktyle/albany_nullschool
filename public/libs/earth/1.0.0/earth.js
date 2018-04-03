@@ -299,8 +299,7 @@
         var initial = gridAgent.value().primaryGrid.navigate(REL_DATE, 0);
         for (var tries = 0; tries < 9; tries++) {
             next = gridAgent.value().primaryGrid.navigate(REL_DATE, step);
-            configuration.save(µ.dateToConfig(next));
-            console.log(configuration);          
+            configuration.save(µ.dateToConfig(next));        
             resource = products.gfs1p0degPath(configuration.attributes, configuration.attributes.param, configuration.attributes.surface, configuration.attributes.level);
             if(!jsonExists(resource)) {
                 step += step;
@@ -312,6 +311,27 @@
             if(tries == 9) {
                 next = initial;
                 configuration.save(µ.dateToConfig(next));
+            }
+    }
+
+    function navigateTo(date, hour) {
+        var dateparts = date.split("-");
+        var sdate = new Date(Date.UTC(dateparts[0], dateparts[1]-1, dateparts[2], parseInt(hour), 0, 0, 0));
+        console.log(sdate);
+        console.log(REL_DATE);
+        var initial = gridAgent.value().primaryGrid.navigate(REL_DATE, 0);
+        console.log(initial);
+
+        var search = gridAgent.value().primaryGrid.navigate(sdate, 0);
+        console.log(search);
+        configuration.save(µ.dateToConfig(search)); 
+        var resource = products.gfs1p0degPath(configuration.attributes, configuration.attributes.param, configuration.attributes.surface, configuration.attributes.level);
+        if(!jsonExists(resource)) {
+                configuration.save(µ.dateToConfig(initial)); 
+                 console.log("ney");
+            } else {
+                console.log("yey");
+                return;
             }
     }
 
@@ -1124,11 +1144,20 @@
         d3.select("#nav-forward-more" ).on("click", navigate.bind(null, +8));
         d3.select("#nav-backward"     ).on("click", navigate.bind(null, -1));
         d3.select("#nav-forward"      ).on("click", navigate.bind(null, +1));
-        d3.select("#nav-now").on("click", function() { configuration.save({date: "current", hour: ""}); 
+        d3.select("#nav-now").on("click", function() { 
+            configuration.save({date: "current", hour: ""}); 
             REL_TIME = 0; 
             REL_DATE = configuration.attributes.date; 
             console.log("reldate init");
-            console.log(REL_DATE); });
+            console.log(REL_DATE); 
+        });
+
+        d3.select("#jgo").on("click", function () {
+            var tdate = d3.select("#jdate").node().value;
+            var thour = d3.select("#hbox").node().value;
+            navigateTo(tdate, thour);
+        });
+
 
         d3.select("#option-show-grid").on("click", function() {
             configuration.save({showGridPoints: !configuration.get("showGridPoints")});
