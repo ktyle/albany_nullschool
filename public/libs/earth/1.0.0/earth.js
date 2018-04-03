@@ -254,15 +254,29 @@
         //         this allows us to use the product for navigation and other state.
         var cancel = this.cancel;
         downloadsInProgress++;
+        console.log("heading to download")
         var loaded = when.map(products.productsFor(configuration.attributes), function(product) {
             return product.load(cancel);
         });
+        console.log("loaded");
+
+        console.log(loaded);
         return when.all(loaded).then(function(products) {
             log.time("build grids");
             return {primaryGrid: products[0], overlayGrid: products[1] || products[0]};
         }).ensure(function() {
             downloadsInProgress--;
+
+        console.log("dl in prog download")
         });
+    }
+
+    function jsonExists(path)
+    {
+        var req = new XMLHttpRequest();
+        req.open('HEAD', path, false);
+        req.send();
+        return req.status!=404;
     }
 
     /**
@@ -273,51 +287,32 @@
             log.debug("Download in progress--ignoring nav request.");
             return;
         }
-        if(step % 8 == 0)
-        {
-            REL_TIME += step;
-        }
-        else if(REL_TIME < 80)
-        {
-            REL_TIME += step;
-        }
-        else if(REL_TIME == 80 && Math.sign(step) == -1)
-        {
-            REL_TIME += step;
-        }
-        else if(REL_TIME >= 80 && REL_TIME <= 107)
-        {
-            step *= 2;
-            REL_TIME += step;
-        }
-        else if (REL_TIME == 108 && Math.sign(step) == -1)
-        {
-            step *= 2;
-            REL_TIME += step;
-        }
-        else if (REL_TIME >= 108)
-        {
-            step *= 4;
-            REL_TIME += step;
-        }
+        REL_TIME += step;
         if(REL_TIME == 0)
         {
             configuration.save({date: "current", hour: ""});
             return;
         }
 
-        var next = gridAgent.value().primaryGrid.navigate(REL_DATE, step);
-        //if(gridAgent)
-        console.log("next val");
-        console.log(REL_TIME);
-        console.log(next);
-         //  console.log("navigated");
-         //   console.log(next);
-         //   REL_DATE = next;
-        if (next) {
-            console.log("saved");
+        var next;
+        var resource;
+        var initial = gridAgent.value().primaryGrid.navigate(REL_DATE, 0);
+        for (var tries = 0; tries < 9; tries++) {
+            next = gridAgent.value().primaryGrid.navigate(REL_DATE, step);
             configuration.save(µ.dateToConfig(next));
+            console.log(configuration);          
+            resource = products.gfs1p0degPath(configuration.attributes, configuration.attributes.param, configuration.attributes.surface, configuration.attributes.level);
+            if(!jsonExists(resource)) {
+                step += step;
+                REL_TIME += step;
+            } else {
+                break;
+            }
         }
+            if(tries == 9) {
+                next = initial;
+                configuration.save(µ.dateToConfig(next));
+            }
     }
 
     function buildRenderer(mesh, globe) {

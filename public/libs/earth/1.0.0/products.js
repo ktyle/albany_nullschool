@@ -61,8 +61,6 @@ var products = function() {
             return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour));
         }
         var parts = attr.date.split("/");
-        console.log("gfsDate parts");
-        console.log(parts);
         return new Date(Date.UTC(+parts[0], parts[1] - 1, +parts[2], +attr.hour.substr(0, 2)));
     }
 
@@ -766,7 +764,7 @@ console.log ("attr.surface = " + attr.surface);
         // console.log(date.getUTCHours());
         // console.log(parseInt(header.forecastTime));
         date.setUTCHours(date.getUTCHours() + parseInt(header.forecastTime));
-        console.log(date);
+        //console.log(date);
         // Scan mode 0 assumed. Longitude increases from λ0, and latitude decreases from φ0.
         // http://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_table3-4.shtml
         var grid = [], p = 0;
@@ -843,7 +841,10 @@ console.log ("attr.surface = " + attr.surface);
 
     return {
         overlayTypes: d3.set(_.keys(FACTORIES)),
-        productsFor: productsFor
+        productsFor: productsFor,
+        gfs1p0degPath: gfs1p0degPath,
+        gfsStep: gfsStep,
+        gfsDate: gfsDate
     };
 
 }();
