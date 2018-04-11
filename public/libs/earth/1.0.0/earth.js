@@ -317,20 +317,16 @@
     function navigateTo(date, hour) {
         var dateparts = date.split("-");
         var sdate = new Date(Date.UTC(dateparts[0], dateparts[1]-1, dateparts[2], parseInt(hour), 0, 0, 0));
-        console.log(sdate);
-        console.log(REL_DATE);
         var initial = gridAgent.value().primaryGrid.navigate(REL_DATE, 0);
-        console.log(initial);
-
         var search = gridAgent.value().primaryGrid.navigate(sdate, 0);
-        console.log(search);
         configuration.save(µ.dateToConfig(search)); 
         var resource = products.gfs1p0degPath(configuration.attributes, configuration.attributes.param, configuration.attributes.surface, configuration.attributes.level);
         if(!jsonExists(resource)) {
                 configuration.save(µ.dateToConfig(initial)); 
-                 console.log("ney");
             } else {
-                console.log("yey");
+                var diff = sdate - REL_DATE;
+                var hours = diff / 1000 /60 /60;
+                REL_TIME += hours/3;
                 return;
             }
     }
@@ -954,6 +950,7 @@
         });
 
         d3.selectAll(".fill-screen").attr("width", view.width).attr("height", view.height);
+
         // Adjust size of the scale canvas to fill the width of the menu to the right of the label.
         var label = d3.select("#scale-label").node();
         d3.select("#scale")
@@ -1157,6 +1154,25 @@
             var thour = d3.select("#hbox").node().value;
             navigateTo(tdate, thour);
         });
+
+        d3.select("body")
+            .on("keydown", function() {
+                var isShift = false;
+                if (d3.event.shiftKey) {
+                        isShift = true;
+                        console.log("shifty");
+                    }
+
+                if(d3.event.keyCode === 37 && !isShift)
+                    navigate(-1);
+                if(d3.event.keyCode === 37 && isShift)
+                    navigate(-8);
+                if(d3.event.keyCode === 39 && !isShift)
+                    navigate(+1);
+                if(d3.event.keyCode === 39 && isShift)
+                    navigate(+8)
+            });
+
 
 
         d3.select("#option-show-grid").on("click", function() {
