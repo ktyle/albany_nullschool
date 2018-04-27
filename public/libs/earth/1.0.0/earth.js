@@ -254,20 +254,14 @@
         //         this allows us to use the product for navigation and other state.
         var cancel = this.cancel;
         downloadsInProgress++;
-        console.log("heading to download")
         var loaded = when.map(products.productsFor(configuration.attributes), function(product) {
             return product.load(cancel);
         });
-        console.log("loaded");
-
-        console.log(loaded);
         return when.all(loaded).then(function(products) {
             log.time("build grids");
             return {primaryGrid: products[0], overlayGrid: products[1] || products[0]};
         }).ensure(function() {
             downloadsInProgress--;
-
-        console.log("dl in prog download")
         });
     }
 
@@ -726,25 +720,35 @@
         if (grid) {
             // Draw color bar for reference.
             var colorBar = d3.select("#scale"), scale = grid.scale, bounds = scale.bounds;
-            var c = colorBar.node(), g = c.getContext("2d"), n = c.width - 1;
-            g.font = c.height+"px serif";
+            var c = colorBar.node(), g = c.getContext("2d"), n = c.height - 1;
+            g.font = "10px serif";
             for (var i = 0; i <= n; i++) {
-                var rgb = scale.gradient(µ.spread(i / n, bounds[0], bounds[1]), 1);
+                var rgb = scale.gradient(µ.spread(i / n, bounds[1], bounds[0]), 1);
                 g.fillStyle = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
-                g.fillRect(i, 0, 1, c.height);
+                g.fillRect(0, i, c.width, 1);
             }
-            g.fillStyle = "rgb(0,0,0)";
-            for (var i = 0; i <= n; i++) {
-                if(i%50 == 0) {
-                
 
+            µ.clearCanvas(d3.select("#scalelabels").node());
+            var labelBar = d3.select("#scalelabels");
+            var l = labelBar.node();
+            var gl = l.getContext("2d");
+            gl.fillStyle = "rgb(255,0,0)";
+            scale = grid.scale, bounds = scale.bounds;
+            gl.font="bold 12px serif";
+            gl.fillRect(0, 0, l.width, l.height)
+            gl.fillStyle = "rgb(255,255,255)";
+            var elementId = grid.type === "wind" ? "#location-wind-units" : "#location-value-units";
+            var units = createUnitToggle(elementId, grid).value();
+            n = l.height - 1;
+            for (var i = n; i >= 0; i--) {
+                if(i%20 == 0) {
+                
                 var pct = µ.clamp((Math.round(i) - 2) / (n - 2), 0, 1);
-                var value = µ.spread(pct, bounds[0], bounds[1]);
-                var elementId = grid.type === "wind" ? "#location-wind-units" : "#location-value-units";
-                var units = createUnitToggle(elementId, grid).value();
-                g.fillText("|"+µ.formatScalar(value, units) + " " + units.label, i, c.height);
+                var value = µ.spread(pct, bounds[1], bounds[0]);
+                gl.fillText(""+µ.formatScalar(value, units) +  "_", 0, i);
             }
         }
+        d3.select("#scale-label").node().textContent = units.label;
     }
     }
 
@@ -774,12 +778,9 @@
         var date = new Date(validityDate(grids))
         var formatted = µ.toUTCISO(date);
         REL_DATE = date;
-        console.log(REL_DATE);
-        console.log("showDate");
         var local = µ.toLocalISO(date);
-        console.log(date.getHours());
-        console.log(local);
-        d3.select("#data-date").text(formatted + " " + "UTC" + " | " + local + " " + "Local");
+        //local date for reference
+        d3.select("#data-date").text(formatted + " " + "UTC");
     }
    
 
@@ -1145,8 +1146,6 @@
             configuration.save({date: "current", hour: ""}); 
             REL_TIME = 0; 
             REL_DATE = configuration.attributes.date; 
-            console.log("reldate init");
-            console.log(REL_DATE); 
         });
 
         d3.select("#jgo").on("click", function () {
@@ -1155,12 +1154,12 @@
             navigateTo(tdate, thour);
         });
 
+
         d3.select("body")
             .on("keydown", function() {
                 var isShift = false;
                 if (d3.event.shiftKey) {
                         isShift = true;
-                        console.log("shifty");
                     }
 
                 if(d3.event.keyCode === 37 && !isShift)
@@ -1170,8 +1169,28 @@
                 if(d3.event.keyCode === 39 && !isShift)
                     navigate(+1);
                 if(d3.event.keyCode === 39 && isShift)
-                    navigate(+8)
+                    navigate(+8);
             });
+
+        d3.select('#sbox').on('change', function() {
+            var surf = d3.select('#sbox').node().value;
+            var id = this.id, parts = surf.split("-");
+            configuration.save({param: "wind", surface: parts[0], level: parts[1]})
+            //d3.select("#"+surf).classed("highlighted", _.isEqual(_.pick(attr, keys), _.pick(newAttr, keys)));
+        });
+
+        d3.select('#obox').on('change', function() {
+            var surf = d3.select('#obox').node().value;
+            var parts = surf.split("-");
+            configuration.save({overlayType: parts[1]})
+            //d3.select("#"+surf).classed("highlighted", _.isEqual(_.pick(attr, keys), _.pick(newAttr, keys)));
+        });
+
+        d3.select('#pbox').on('change', function() {
+            var surf = d3.select('#pbox').node().value;
+            configuration.save({projection: surf, orientation: "" });
+            //d3.select("#"+surf).classed("highlighted", _.isEqual(_.pick(attr, keys), _.pick(newAttr, keys)));
+        });
 
 
 
@@ -1182,27 +1201,7 @@
             d3.select("#option-show-grid").classed("highlighted", showGridPoints);
         });
 
-        // Add handlers for all wind level buttons.
-        d3.selectAll(".surface").each(function() {
-            var id = this.id, parts = id.split("-");
-            bindButtonToConfiguration("#" + id, {param: "wind", surface: parts[0], level: parts[1]});
-        });
 
-        // Add handlers for ocean animation types.
-        bindButtonToConfiguration("#animate-currents", {param: "ocean", surface: "surface", level: "currents"});
-
-        // Add handlers for all overlay buttons.
-        products.overlayTypes.forEach(function(type) {
-            bindButtonToConfiguration("#overlay-" + type, {overlayType: type});
-        });
-        bindButtonToConfiguration("#overlay-wind", {param: "wind", overlayType: "default"});
-        bindButtonToConfiguration("#overlay-ocean-off", {overlayType: "off"});
-        bindButtonToConfiguration("#overlay-currents", {overlayType: "default"});
-
-        // Add handlers for all projection buttons.
-        globes.keys().forEach(function(p) {
-            bindButtonToConfiguration("#" + p, {projection: p, orientation: ""}, ["projection"]);
-        });
 
         // When touch device changes between portrait and landscape, rebuild globe using the new view size.
         d3.select(window).on("orientationchange", function() {
@@ -1214,7 +1213,8 @@
     function start() {
         // Everything is now set up, so load configuration from the hash fragment and kick off change events.
         configuration.fetch();
-        REL_TIME = 0; 
+        REL_TIME = 0;
+
     }
 
     when(true).then(init).then(start).otherwise(report.error);
