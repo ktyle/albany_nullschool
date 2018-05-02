@@ -32,7 +32,7 @@
          <div id="overlayd" style="position: absolute;
          background-color: rgba(5, 10, 30, 0.85);
     border-radius: 0.5rem/0.5rem; padding: 0.5rem 1rem 0.5rem 1rem; bottom: 20px;
-    right: 20px;">
+    right: 20px; ">
             <p> <canvas id="scalelabels" style=" height: 30em; width: 3em;"></canvas>
                 <canvas id="scale" style=" height: 30em; width: 3em;"></canvas></p>
             <p><span id="scale-label" >Scale </span></p>
@@ -75,7 +75,9 @@
                 id="data-date" class="utc"></span>
             </p>
             <p>Data | <span id="data-layer"></span></p>
+            <!--
             <p>Source | <span id="data-center"></span></p>
+            -->
             <p>Control | <span
                 class="text-button" id="nav-now" title="Current Conditions">Now</span><span
                 class="text-button" id="nav-backward-more"> « </span> – <span
@@ -100,10 +102,12 @@
             </select> 
             <span id="jgo" class="text-button">Go</span>
             </p>
+            <!--
             <p>Mode | <span
                 class="text-button" id="wind-mode-enable">Air</span> – <span
                 class="text-button" id="ocean-mode-enable">Ocean</span>
             </p>
+        -->
             <p class="wind-mode">Height : <select id="sbox">
                 <option value="surface-level">Surface</option>
                 <option value="trop-level">Tropopause</option>

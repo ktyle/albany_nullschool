@@ -731,17 +731,24 @@
             µ.clearCanvas(d3.select("#scalelabels").node());
             var labelBar = d3.select("#scalelabels");
             var l = labelBar.node();
+            //l.height = colorBar.offsetParent().clientHeight;
+            l.width = 45;
             var gl = l.getContext("2d");
-            gl.fillStyle = "rgb(255,0,0)";
+            //gl.fillStyle = "rgb(255,0,0)";
             scale = grid.scale, bounds = scale.bounds;
-            gl.font="bold 12px serif";
-            gl.fillRect(0, 0, l.width, l.height)
+            gl.font="bold 13px serif";
+            //gl.fillRect(0, 0, l.width, l.height)
             gl.fillStyle = "rgb(255,255,255)";
             var elementId = grid.type === "wind" ? "#location-wind-units" : "#location-value-units";
             var units = createUnitToggle(elementId, grid).value();
-            n = l.height - 1;
-            for (var i = n; i >= 0; i--) {
-                if(i%20 == 0) {
+            console.log(colorBar.node());
+            n = l.height-1;
+            console.log(n);
+            for (var i = 0; i < n; i++) {
+                if(n - i > 140){
+                    continue;
+                }
+                if(i%15 == 0) {
                 
                 var pct = µ.clamp((Math.round(i) - 2) / (n - 2), 0, 1);
                 var value = µ.spread(pct, bounds[1], bounds[0]);
@@ -801,7 +808,6 @@
             center = grids.overlayGrid.source;
         }
         d3.select("#data-layer").text(description);
-        d3.select("#data-center").text(center);
     }
 
     /**
@@ -1096,14 +1102,17 @@
         });
 
         // Add handlers for mode buttons.
+        /*
         d3.select("#wind-mode-enable").on("click", function() {
             if (configuration.get("param") !== "wind") {
                 configuration.save({param: "wind", surface: "surface", level: "level", overlayType: "default"});
             }
         });
+        */
         configuration.on("change:param", function(x, param) {
             d3.select("#wind-mode-enable").classed("highlighted", param === "wind");
         });
+        /*
         d3.select("#ocean-mode-enable").on("click", function() {
             if (configuration.get("param") !== "ocean") {
                 // When switching between modes, there may be no associated data for the current date. So we need
@@ -1124,6 +1133,7 @@
                 stopCurrentAnimation(true);  // cleanup particle artifacts over continents
             }
         });
+        */
         configuration.on("change:param", function(x, param) {
             d3.select("#ocean-mode-enable").classed("highlighted", param === "ocean");
         });
@@ -1175,20 +1185,34 @@
         d3.select('#sbox').on('change', function() {
             var surf = d3.select('#sbox').node().value;
             var id = this.id, parts = surf.split("-");
-            configuration.save({param: "wind", surface: parts[0], level: parts[1]})
+            var test = configuration.attributes;
+            test.date = "current";
+            console.log(products.gfs1p0degPath(test, configuration.attributes.param, parts[0], configuration.attributes.level))
+            if(jsonExists(products.gfs1p0degPath(configuration.attributes, configuration.attributes.param, parts[0], configuration.attributes.level)))
+                configuration.save({param: "wind", surface: parts[0], level: parts[1]})
+            else
+                console.log("Selected config DNE");
+
             //d3.select("#"+surf).classed("highlighted", _.isEqual(_.pick(attr, keys), _.pick(newAttr, keys)));
         });
 
         d3.select('#obox').on('change', function() {
             var surf = d3.select('#obox').node().value;
             var parts = surf.split("-");
-            configuration.save({overlayType: parts[1]})
+            if(parts[1] == "off")
+                configuration.save({overlayType: parts[1]})
+            console.log(products.gfs1p0degPath(configuration.attributes, parts[1], configuration.attributes.surface, configuration.attributes.level))
+            if(jsonExists(products.gfs1p0degPath(configuration.attributes, parts[1], configuration.attributes.surface, configuration.attributes.level)))
+                configuration.save({overlayType: parts[1]})
+            else
+                console.log("Selected config DNE");
             //d3.select("#"+surf).classed("highlighted", _.isEqual(_.pick(attr, keys), _.pick(newAttr, keys)));
         });
 
         d3.select('#pbox').on('change', function() {
             var surf = d3.select('#pbox').node().value;
             configuration.save({projection: surf, orientation: "" });
+
             //d3.select("#"+surf).classed("highlighted", _.isEqual(_.pick(attr, keys), _.pick(newAttr, keys)));
         });
 

@@ -142,8 +142,10 @@ body {
 }
 
 #overlay-data {
+    position: absolute;
     background-color: rgba(5, 10, 30, 0.85);
-    border-radius: 0.5rem/0.5rem;
+    border-radius: 0.5rem/0.5rem; padding: 0.5rem 1rem 0.5rem 1rem; bottom: 20px;
+    right: 20px; "
 }
 
 #menu.invisible {
