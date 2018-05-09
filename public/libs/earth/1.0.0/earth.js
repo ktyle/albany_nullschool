@@ -703,6 +703,7 @@
         });
     }
 
+
     function drawOverlay(field, overlayType) {
         if (!field) return;
 
@@ -732,32 +733,32 @@
             var labelBar = d3.select("#scalelabels");
             var l = labelBar.node();
             //l.height = colorBar.offsetParent().clientHeight;
-            l.width = 45;
+            l.width = 50;
             var gl = l.getContext("2d");
             //gl.fillStyle = "rgb(255,0,0)";
             scale = grid.scale, bounds = scale.bounds;
-            gl.font="bold 13px serif";
+            gl.font="bold 12px serif";
             //gl.fillRect(0, 0, l.width, l.height)
             gl.fillStyle = "rgb(255,255,255)";
             var elementId = grid.type === "wind" ? "#location-wind-units" : "#location-value-units";
             var units = createUnitToggle(elementId, grid).value();
             console.log(colorBar.node());
             n = l.height-1;
-            console.log(n);
             for (var i = 0; i < n; i++) {
-                if(n - i > 140){
-                    continue;
+                    if(n - i > 140)
+                        continue;
+                    if(i == 0 || i%20 == 0) {
+                    var pct = µ.clamp((Math.round(i) - 2) / (n - 2), 0, 1);
+                    var value = µ.spread(pct, bounds[1], bounds[0]);
+                    gl.fillText(""+µ.formatScalar(value, units) +  "_", l.width-30, i);
                 }
-                if(i%15 == 0) {
                 
-                var pct = µ.clamp((Math.round(i) - 2) / (n - 2), 0, 1);
-                var value = µ.spread(pct, bounds[1], bounds[0]);
-                gl.fillText(""+µ.formatScalar(value, units) +  "_", 0, i);
             }
-        }
+            
         d3.select("#scale-label").node().textContent = units.label;
     }
-    }
+}
+    
 
     /**
      * Extract the date the grids are valid, or the current date if no grid is available.
@@ -837,6 +838,7 @@
         d3.select("#location-wind").text(µ.formatVector(wind, units));
         d3.select("#location-wind-units").text(units.label).on("click", function() {
             unitToggle.next();
+            drawOverlay(fieldAgent.value(), configuration.get("overlayType"));
             showWindAtLocation(wind, product);
         });
     }
@@ -849,6 +851,7 @@
         d3.select("#location-value").text(µ.formatScalar(value, units));
         d3.select("#location-value-units").text(units.label).on("click", function() {
             unitToggle.next();
+            drawOverlay(fieldAgent.value(), configuration.get("overlayType"));
             showOverlayValueAtLocation(value, product);
         });
     }
@@ -1186,7 +1189,7 @@
             var surf = d3.select('#sbox').node().value;
             var id = this.id, parts = surf.split("-");
             var test = configuration.attributes;
-            test.date = "current";
+            //test.date = "current"; reset to current or stay on same date
             console.log(products.gfs1p0degPath(test, configuration.attributes.param, parts[0], configuration.attributes.level))
             if(jsonExists(products.gfs1p0degPath(configuration.attributes, configuration.attributes.param, parts[0], configuration.attributes.level)))
                 configuration.save({param: "wind", surface: parts[0], level: parts[1]})

@@ -144,9 +144,9 @@ console.log ("attr.surface = " + attr.surface);
                         }
                     },
                     units: [
+                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "km/h", conversion: function(x) { return x * 3.6; },      precision: 0},
                         {label: "m/s",  conversion: function(x) { return x; },            precision: 1},
-                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "mph",  conversion: function(x) { return x * 2.236936; }, precision: 0}
                     ],
                     scale: {
@@ -183,9 +183,9 @@ console.log ("attr.surface = " + attr.surface);
                         }
                     },
                     units: [
+                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "km/h", conversion: function(x) { return x * 3.6; },      precision: 0},
                         {label: "m/s",  conversion: function(x) { return x; },            precision: 1},
-                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "mph",  conversion: function(x) { return x * 2.236936; }, precision: 0}
                     ],
                     scale: {
@@ -223,8 +223,8 @@ console.log ("attr.surface = " + attr.surface);
                     },
                     units: [
                         {label: "°C", conversion: function(x) { return x - 273.15; },       precision: 1},
-                        {label: "°F", conversion: function(x) { return x * 9/5 - 459.67; }, precision: 1},
-                        {label: "K",  conversion: function(x) { return x; },                precision: 1}
+                        {label: "K",  conversion: function(x) { return x; },                precision: 1},
+                        {label: "°F", conversion: function(x) { return x * 9/5 - 459.67; }, precision: 1}
                     ],
                     scale: {
                         bounds: [193, 328],
@@ -269,9 +269,9 @@ console.log ("attr.surface = " + attr.surface);
                         }
                     },
                     units: [
+                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "km/h", conversion: function(x) { return x * 3.6; },      precision: 0},
                         {label: "m/s",  conversion: function(x) { return x; },            precision: 1},
-                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "mph",  conversion: function(x) { return x * 2.236936; }, precision: 0}
                     ],
                     scale: {
@@ -314,9 +314,9 @@ console.log ("attr.surface = " + attr.surface);
                         }
                     },
                     units: [
+                        {label: "K",  conversion: function(x) { return x; },                precision: 1},
                         {label: "°C", conversion: function(x) { return x - 273.15; },       precision: 1},
-                        {label: "°F", conversion: function(x) { return x * 9/5 - 459.67; }, precision: 1},
-                        {label: "K",  conversion: function(x) { return x; },                precision: 1}
+                        {label: "°F", conversion: function(x) { return x * 9/5 - 459.67; }, precision: 1}
                     ],
                     scale: {
                         bounds: [293, 428],
@@ -615,9 +615,9 @@ console.log ("attr.surface = " + attr.surface);
                             }
                         },
                         units: [
-                            {label: "m/s",  conversion: function(x) { return x; },            precision: 2},
-                            {label: "km/h", conversion: function(x) { return x * 3.6; },      precision: 1},
                             {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 1},
+                            {label: "km/h", conversion: function(x) { return x * 3.6; },      precision: 1},
+                            {label: "m/s",  conversion: function(x) { return x; },            precision: 2},
                             {label: "mph",  conversion: function(x) { return x * 2.236936; }, precision: 1}
                         ],
                         scale: {
