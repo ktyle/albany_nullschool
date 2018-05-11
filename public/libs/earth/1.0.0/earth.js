@@ -265,6 +265,14 @@
         });
     }
 
+    function jsonExists(path)
+    {
+        var req = new XMLHttpRequest();
+        req.open('HEAD', path, false);
+        req.send();
+        return req.status!=404;
+    }
+
     /**
      * Modifies the configuration to navigate to the chronologically next or previous data layer.
      */
@@ -279,15 +287,42 @@
             configuration.save({date: "current", hour: ""});
             return;
         }
-        var next = gridAgent.value().primaryGrid.navigate(REL_DATE, step);
-        if(gridAgent)
-         //  console.log("navigated");
-         //   console.log(next);
-         //   REL_DATE = next;
-        if (next) {
-            console.log("saved");
-            configuration.save(µ.dateToConfig(next));
+
+        var next;
+        var resource;
+        var initial = gridAgent.value().primaryGrid.navigate(REL_DATE, 0);
+        for (var tries = 0; tries < 9; tries++) {
+            next = gridAgent.value().primaryGrid.navigate(REL_DATE, step);
+            configuration.save(µ.dateToConfig(next));        
+            resource = products.gfs1p0degPath(configuration.attributes, configuration.attributes.param, configuration.attributes.surface, configuration.attributes.level);
+            if(!jsonExists(resource)) {
+                step += step;
+                REL_TIME += step;
+            } else {
+                break;
+            }
         }
+            if(tries == 9) {
+                next = initial;
+                configuration.save(µ.dateToConfig(next));
+            }
+    }
+
+    function navigateTo(date, hour) {
+        var dateparts = date.split("-");
+        var sdate = new Date(Date.UTC(dateparts[0], dateparts[1]-1, dateparts[2], parseInt(hour), 0, 0, 0));
+        var initial = gridAgent.value().primaryGrid.navigate(REL_DATE, 0);
+        var search = gridAgent.value().primaryGrid.navigate(sdate, 0);
+        configuration.save(µ.dateToConfig(search)); 
+        var resource = products.gfs1p0degPath(configuration.attributes, configuration.attributes.param, configuration.attributes.surface, configuration.attributes.level);
+        if(!jsonExists(resource)) {
+                configuration.save(µ.dateToConfig(initial)); 
+            } else {
+                var diff = sdate - REL_DATE;
+                var hours = diff / 1000 /60 /60;
+                REL_TIME += hours/3;
+                return;
+            }
     }
 
     function buildRenderer(mesh, globe) {
@@ -668,6 +703,7 @@
         });
     }
 
+
     function drawOverlay(field, overlayType) {
         if (!field) return;
 
@@ -685,24 +721,44 @@
         if (grid) {
             // Draw color bar for reference.
             var colorBar = d3.select("#scale"), scale = grid.scale, bounds = scale.bounds;
-            var c = colorBar.node(), g = c.getContext("2d"), n = c.width - 1;
+            var c = colorBar.node(), g = c.getContext("2d"), n = c.height - 1;
+            g.font = "10px serif";
             for (var i = 0; i <= n; i++) {
-                var rgb = scale.gradient(µ.spread(i / n, bounds[0], bounds[1]), 1);
+                var rgb = scale.gradient(µ.spread(i / n, bounds[1], bounds[0]), 1);
                 g.fillStyle = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
-                g.fillRect(i, 0, 1, c.height);
+                g.fillRect(0, i, c.width, 1);
             }
 
-            // Show tooltip on hover.
-            colorBar.on("mousemove", function() {
-                var x = d3.mouse(this)[0];
-                var pct = µ.clamp((Math.round(x) - 2) / (n - 2), 0, 1);
-                var value = µ.spread(pct, bounds[0], bounds[1]);
-                var elementId = grid.type === "wind" ? "#location-wind-units" : "#location-value-units";
-                var units = createUnitToggle(elementId, grid).value();
-                colorBar.attr("title", µ.formatScalar(value, units) + " " + units.label);
-            });
-        }
+            µ.clearCanvas(d3.select("#scalelabels").node());
+            var labelBar = d3.select("#scalelabels");
+            var l = labelBar.node();
+            //l.height = colorBar.offsetParent().clientHeight;
+            l.width = 50;
+            var gl = l.getContext("2d");
+            //gl.fillStyle = "rgb(255,0,0)";
+            scale = grid.scale, bounds = scale.bounds;
+            gl.font="bold 12px serif";
+            //gl.fillRect(0, 0, l.width, l.height)
+            gl.fillStyle = "rgb(255,255,255)";
+            var elementId = grid.type === "wind" ? "#location-wind-units" : "#location-value-units";
+            var units = createUnitToggle(elementId, grid).value();
+            console.log(colorBar.node());
+            n = l.height-1;
+            for (var i = 0; i < n; i++) {
+                    if(n - i > 140)
+                        continue;
+                    if(i == 0 || i%20 == 0) {
+                    var pct = µ.clamp((Math.round(i) - 2) / (n - 2), 0, 1);
+                    var value = µ.spread(pct, bounds[1], bounds[0]);
+                    gl.fillText(""+µ.formatScalar(value, units) +  "_", l.width-30, i);
+                }
+                
+            }
+            
+        d3.select("#scale-label").node().textContent = units.label;
     }
+}
+    
 
     /**
      * Extract the date the grids are valid, or the current date if no grid is available.
@@ -730,12 +786,9 @@
         var date = new Date(validityDate(grids))
         var formatted = µ.toUTCISO(date);
         REL_DATE = date;
-        console.log(REL_DATE);
-        console.log("showDate");
         var local = µ.toLocalISO(date);
-        console.log(date.getHours());
-        console.log(local);
-        d3.select("#data-date").text(formatted + " " + "UTC" + " | " + local + " " + "Local");
+        //local date for reference
+        d3.select("#data-date").text(formatted + " " + "UTC");
     }
    
 
@@ -756,7 +809,6 @@
             center = grids.overlayGrid.source;
         }
         d3.select("#data-layer").text(description);
-        d3.select("#data-center").text(center);
     }
 
     /**
@@ -786,6 +838,7 @@
         d3.select("#location-wind").text(µ.formatVector(wind, units));
         d3.select("#location-wind-units").text(units.label).on("click", function() {
             unitToggle.next();
+            drawOverlay(fieldAgent.value(), configuration.get("overlayType"));
             showWindAtLocation(wind, product);
         });
     }
@@ -798,6 +851,7 @@
         d3.select("#location-value").text(µ.formatScalar(value, units));
         d3.select("#location-value-units").text(units.label).on("click", function() {
             unitToggle.next();
+            drawOverlay(fieldAgent.value(), configuration.get("overlayType"));
             showOverlayValueAtLocation(value, product);
         });
     }
@@ -906,6 +960,7 @@
         });
 
         d3.selectAll(".fill-screen").attr("width", view.width).attr("height", view.height);
+
         // Adjust size of the scale canvas to fill the width of the menu to the right of the label.
         var label = d3.select("#scale-label").node();
         d3.select("#scale")
@@ -1050,14 +1105,17 @@
         });
 
         // Add handlers for mode buttons.
+        /*
         d3.select("#wind-mode-enable").on("click", function() {
             if (configuration.get("param") !== "wind") {
                 configuration.save({param: "wind", surface: "surface", level: "level", overlayType: "default"});
             }
         });
+        */
         configuration.on("change:param", function(x, param) {
             d3.select("#wind-mode-enable").classed("highlighted", param === "wind");
         });
+        /*
         d3.select("#ocean-mode-enable").on("click", function() {
             if (configuration.get("param") !== "ocean") {
                 // When switching between modes, there may be no associated data for the current date. So we need
@@ -1078,6 +1136,7 @@
                 stopCurrentAnimation(true);  // cleanup particle artifacts over continents
             }
         });
+        */
         configuration.on("change:param", function(x, param) {
             d3.select("#ocean-mode-enable").classed("highlighted", param === "ocean");
         });
@@ -1096,11 +1155,71 @@
         d3.select("#nav-forward-more" ).on("click", navigate.bind(null, +8));
         d3.select("#nav-backward"     ).on("click", navigate.bind(null, -1));
         d3.select("#nav-forward"      ).on("click", navigate.bind(null, +1));
-        d3.select("#nav-now").on("click", function() { configuration.save({date: "current", hour: ""}); 
+        d3.select("#nav-now").on("click", function() { 
+            configuration.save({date: "current", hour: ""}); 
             REL_TIME = 0; 
             REL_DATE = configuration.attributes.date; 
-            console.log("reldate init");
-            console.log(REL_DATE); });
+        });
+
+        d3.select("#jgo").on("click", function () {
+            var tdate = d3.select("#jdate").node().value;
+            var thour = d3.select("#hbox").node().value;
+            navigateTo(tdate, thour);
+        });
+
+
+        d3.select("body")
+            .on("keydown", function() {
+                var isShift = false;
+                if (d3.event.shiftKey) {
+                        isShift = true;
+                    }
+
+                if(d3.event.keyCode === 37 && !isShift)
+                    navigate(-1);
+                if(d3.event.keyCode === 37 && isShift)
+                    navigate(-8);
+                if(d3.event.keyCode === 39 && !isShift)
+                    navigate(+1);
+                if(d3.event.keyCode === 39 && isShift)
+                    navigate(+8);
+            });
+
+        d3.select('#sbox').on('change', function() {
+            var surf = d3.select('#sbox').node().value;
+            var id = this.id, parts = surf.split("-");
+            var test = configuration.attributes;
+            //test.date = "current"; reset to current or stay on same date
+            console.log(products.gfs1p0degPath(test, configuration.attributes.param, parts[0], configuration.attributes.level))
+            if(jsonExists(products.gfs1p0degPath(configuration.attributes, configuration.attributes.param, parts[0], configuration.attributes.level)))
+                configuration.save({param: "wind", surface: parts[0], level: parts[1]})
+            else
+                console.log("Selected config DNE");
+
+            //d3.select("#"+surf).classed("highlighted", _.isEqual(_.pick(attr, keys), _.pick(newAttr, keys)));
+        });
+
+        d3.select('#obox').on('change', function() {
+            var surf = d3.select('#obox').node().value;
+            var parts = surf.split("-");
+            if(parts[1] == "off")
+                configuration.save({overlayType: parts[1]})
+            console.log(products.gfs1p0degPath(configuration.attributes, parts[1], configuration.attributes.surface, configuration.attributes.level))
+            if(jsonExists(products.gfs1p0degPath(configuration.attributes, parts[1], configuration.attributes.surface, configuration.attributes.level)))
+                configuration.save({overlayType: parts[1]})
+            else
+                console.log("Selected config DNE");
+            //d3.select("#"+surf).classed("highlighted", _.isEqual(_.pick(attr, keys), _.pick(newAttr, keys)));
+        });
+
+        d3.select('#pbox').on('change', function() {
+            var surf = d3.select('#pbox').node().value;
+            configuration.save({projection: surf, orientation: "" });
+
+            //d3.select("#"+surf).classed("highlighted", _.isEqual(_.pick(attr, keys), _.pick(newAttr, keys)));
+        });
+
+
 
         d3.select("#option-show-grid").on("click", function() {
             configuration.save({showGridPoints: !configuration.get("showGridPoints")});
@@ -1109,27 +1228,7 @@
             d3.select("#option-show-grid").classed("highlighted", showGridPoints);
         });
 
-        // Add handlers for all wind level buttons.
-        d3.selectAll(".surface").each(function() {
-            var id = this.id, parts = id.split("-");
-            bindButtonToConfiguration("#" + id, {param: "wind", surface: parts[0], level: parts[1]});
-        });
 
-        // Add handlers for ocean animation types.
-        bindButtonToConfiguration("#animate-currents", {param: "ocean", surface: "surface", level: "currents"});
-
-        // Add handlers for all overlay buttons.
-        products.overlayTypes.forEach(function(type) {
-            bindButtonToConfiguration("#overlay-" + type, {overlayType: type});
-        });
-        bindButtonToConfiguration("#overlay-wind", {param: "wind", overlayType: "default"});
-        bindButtonToConfiguration("#overlay-ocean-off", {overlayType: "off"});
-        bindButtonToConfiguration("#overlay-currents", {overlayType: "default"});
-
-        // Add handlers for all projection buttons.
-        globes.keys().forEach(function(p) {
-            bindButtonToConfiguration("#" + p, {projection: p, orientation: ""}, ["projection"]);
-        });
 
         // When touch device changes between portrait and landscape, rebuild globe using the new view size.
         d3.select(window).on("orientationchange", function() {
@@ -1141,7 +1240,8 @@
     function start() {
         // Everything is now set up, so load configuration from the hash fragment and kick off change events.
         configuration.fetch();
-        REL_TIME = 0; 
+        REL_TIME = 0;
+
     }
 
     when(true).then(init).then(start).otherwise(report.error);

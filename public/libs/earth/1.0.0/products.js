@@ -61,8 +61,6 @@ var products = function() {
             return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour));
         }
         var parts = attr.date.split("/");
-        console.log("gfsDate parts");
-        console.log(parts);
         return new Date(Date.UTC(+parts[0], parts[1] - 1, +parts[2], +attr.hour.substr(0, 2)));
     }
 
@@ -146,9 +144,9 @@ console.log ("attr.surface = " + attr.surface);
                         }
                     },
                     units: [
+                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "km/h", conversion: function(x) { return x * 3.6; },      precision: 0},
                         {label: "m/s",  conversion: function(x) { return x; },            precision: 1},
-                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "mph",  conversion: function(x) { return x * 2.236936; }, precision: 0}
                     ],
                     scale: {
@@ -185,9 +183,9 @@ console.log ("attr.surface = " + attr.surface);
                         }
                     },
                     units: [
+                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "km/h", conversion: function(x) { return x * 3.6; },      precision: 0},
                         {label: "m/s",  conversion: function(x) { return x; },            precision: 1},
-                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "mph",  conversion: function(x) { return x * 2.236936; }, precision: 0}
                     ],
                     scale: {
@@ -225,8 +223,8 @@ console.log ("attr.surface = " + attr.surface);
                     },
                     units: [
                         {label: "°C", conversion: function(x) { return x - 273.15; },       precision: 1},
-                        {label: "°F", conversion: function(x) { return x * 9/5 - 459.67; }, precision: 1},
-                        {label: "K",  conversion: function(x) { return x; },                precision: 1}
+                        {label: "K",  conversion: function(x) { return x; },                precision: 1},
+                        {label: "°F", conversion: function(x) { return x * 9/5 - 459.67; }, precision: 1}
                     ],
                     scale: {
                         bounds: [193, 328],
@@ -271,9 +269,9 @@ console.log ("attr.surface = " + attr.surface);
                         }
                     },
                     units: [
+                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "km/h", conversion: function(x) { return x * 3.6; },      precision: 0},
                         {label: "m/s",  conversion: function(x) { return x; },            precision: 1},
-                        {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 0},
                         {label: "mph",  conversion: function(x) { return x * 2.236936; }, precision: 0}
                     ],
                     scale: {
@@ -316,9 +314,9 @@ console.log ("attr.surface = " + attr.surface);
                         }
                     },
                     units: [
+                        {label: "K",  conversion: function(x) { return x; },                precision: 1},
                         {label: "°C", conversion: function(x) { return x - 273.15; },       precision: 1},
-                        {label: "°F", conversion: function(x) { return x * 9/5 - 459.67; }, precision: 1},
-                        {label: "K",  conversion: function(x) { return x; },                precision: 1}
+                        {label: "°F", conversion: function(x) { return x * 9/5 - 459.67; }, precision: 1}
                     ],
                     scale: {
                         bounds: [293, 428],
@@ -625,9 +623,9 @@ console.log ("attr.surface = " + attr.surface);
                             }
                         },
                         units: [
-                            {label: "m/s",  conversion: function(x) { return x; },            precision: 2},
-                            {label: "km/h", conversion: function(x) { return x * 3.6; },      precision: 1},
                             {label: "kn",   conversion: function(x) { return x * 1.943844; }, precision: 1},
+                            {label: "km/h", conversion: function(x) { return x * 3.6; },      precision: 1},
+                            {label: "m/s",  conversion: function(x) { return x; },            precision: 2},
                             {label: "mph",  conversion: function(x) { return x * 2.236936; }, precision: 1}
                         ],
                         scale: {
@@ -764,17 +762,11 @@ console.log ("attr.surface = " + attr.surface);
         var λ0 = header.lo1, φ0 = header.la1;  // the grid's origin (e.g., 0.0E, 90.0N)
         var Δλ = header.dx, Δφ = header.dy;    // distance between grid points (e.g., 2.5 deg lon, 2.5 deg lat)
         var ni = header.nx, nj = header.ny;    // number of grid points W-E and N-S (e.g., 144 x 73)
-        // console.log(header.refTime);
         var refparts = header.refTime.split(" ");
         var dateparts = refparts[0].split("-"); 
         var timeparts = refparts[1].split(":");
-        // console.log(refparts);
         var date = new Date(Date.UTC(dateparts[0], dateparts[1]-1, dateparts[2], timeparts[0], 0, 0, 0));
-        // console.log(date);
-        // console.log(date.getUTCHours());
-        // console.log(parseInt(header.forecastTime));
         date.setUTCHours(date.getUTCHours() + parseInt(header.forecastTime));
-        console.log(date);
         // Scan mode 0 assumed. Longitude increases from λ0, and latitude decreases from φ0.
         // http://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_table3-4.shtml
         var grid = [], p = 0;
@@ -851,7 +843,10 @@ console.log ("attr.surface = " + attr.surface);
 
     return {
         overlayTypes: d3.set(_.keys(FACTORIES)),
-        productsFor: productsFor
+        productsFor: productsFor,
+        gfs1p0degPath: gfs1p0degPath,
+        gfsStep: gfsStep,
+        gfsDate: gfsDate
     };
 
 }();
